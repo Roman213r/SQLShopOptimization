@@ -1,0 +1,19 @@
+DROP INDEX IF EXISTS idx_orders_customer_created;
+DROP INDEX IF EXISTS idx_orders_status_created;
+DROP INDEX IF EXISTS idx_orders_paid_customer;
+DROP INDEX IF EXISTS idx_order_items_order;
+DROP INDEX IF EXISTS idx_order_items_product;
+DROP INDEX IF EXISTS idx_payments_order;
+DROP INDEX IF EXISTS idx_payments_status;
+DROP INDEX IF EXISTS idx_products_sku;
+DROP INDEX IF EXISTS idx_products_category;
+DROP INDEX IF EXISTS idx_products_name_trgm;
+DROP INDEX IF EXISTS idx_inventory_low_stock;
+DROP INDEX IF EXISTS idx_customers_city_active;
+
+ANALYZE customers;
+ANALYZE products;
+ANALYZE orders;
+ANALYZE order_items;
+ANALYZE payments;
+ANALYZE inventory;

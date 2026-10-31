@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sqlshop-pg
+    environment:
+      POSTGRES_DB: shop
+      POSTGRES_USER: shop
+      POSTGRES_PASSWORD: shop
+    ports:
+      - "5433:5432"
+    volumes:
+      - shop_data:/var/lib/postgresql/data
+      - ./sql:/sql:ro
+      - ./labs:/labs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shop -d shop"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - work_mem=16MB
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_cache_size=512MB
+
+volumes:
+  shop_data:
