@@ -4,4 +4,4 @@
 
 **Антипатерн:** фільтр по `customer_id` + діапазон дат без композитного індексу → Seq Scan по всій таблиці `orders`.
 
-**Оптимізація:** індекс `(customer_id, created_at DESC)` і лише потрібні колонки замість `SELECT *`.
+**Оптимізація:** покриваючий індекс `(customer_id, created_at DESC) INCLUDE (...)` для Index Only Scan і `LIMIT` на сторінку.

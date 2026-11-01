@@ -4,4 +4,4 @@
 
 **Антипатерн:** `NOT IN (SELECT order_id ...)` погано переносить `NULL` і часто гірше планується.
 
-**Оптимізація:** `NOT EXISTS` або `LEFT JOIN ... WHERE payments.id IS NULL`.
+**Оптимізація:** anti-join `LEFT JOIN ... WHERE p.order_id IS NULL` і частковий індекс `payments(order_id) WHERE status = 'captured'`.
