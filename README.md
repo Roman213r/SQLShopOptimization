@@ -1,21 +1,44 @@
-# SQL Shop Optimization
+<p align="center">
+  <img src="docs/banner.svg" alt="SQL Shop Optimization" width="100%">
+</p>
 
-Навчальний проєкт на тему, з якою ІТ-фахівці стикаються щодня: **адмінка інтернет-магазину**.
+<h1 align="center">SQL Shop Optimization</h1>
 
-Є замовлення, оплати, склад, пошук товарів і фінансові звіти. Запити спочатку написані так, як їх часто віддають з ORM або з першої ітерації фічі. Далі — ті самі екрани після індексів і переписування SQL.
+<p align="center">
+  <strong>PostgreSQL performance lab on a real shop admin.</strong><br>
+  120k orders · 10 production-shaped queries · slow plan vs rewritten SQL
+</p>
 
-Стек навмисно звичайний: **PostgreSQL 16 + Docker**. Нічого, крім Docker Desktop, ставити не потрібно.
+<p align="center">
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 16">
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/SQL-EXPLAIN%20ANALYZE-2DD4BF" alt="EXPLAIN ANALYZE">
+  <img src="https://img.shields.io/badge/License-MIT-22C55E" alt="MIT">
+</p>
 
-## Що всередині
+This is the kind of work a backend / DBA does when an admin screen dies in production: read `EXPLAIN (ANALYZE, BUFFERS)`, add the right index, then rewrite the query.
 
-| Таблиця | Роль | Обсяг після seed |
+Not an ORM dump. Each lab is one screen — customer history, finance top-N, deep pagination, catalog search, unpaid orders, monthly report.
+
+## Skills this repo shows
+
+| Area | What is in the SQL |
+| --- | --- |
+| Indexes | covering `INCLUDE`, partial `WHERE`, BRIN on timestamps, GIN trigram + FTS |
+| Query shape | `JOIN LATERAL`, anti-join, keyset pagination, pre-aggregation |
+| Planner traps | function on a column, `NOT IN` + `NULL`, `OFFSET`, `count(DISTINCT)` |
+| Reporting | window `sum() OVER`, `MATERIALIZED VIEW` |
+
+## Dataset
+
+| Table | Role | Rows |
 | --- | --- | ---: |
-| `customers` | покупці CRM | 10 000 |
-| `products` / `categories` | каталог | 4 000 / 15 |
-| `orders` | замовлення | 120 000 |
-| `order_items` | позиції чека | 360 000 |
-| `payments` | оплати | ~106 000 |
-| `inventory` | залишки по 4 складах | 16 000 |
+| `customers` | CRM | 10 000 |
+| `products` / `categories` | catalog | 4 000 / 15 |
+| `orders` | checkout | 120 000 |
+| `order_items` | line items | 360 000 |
+| `payments` | capture / fail | ~106 000 |
+| `inventory` | 4 warehouses | 16 000 |
 
 ```mermaid
 erDiagram
@@ -28,86 +51,63 @@ erDiagram
     warehouses ||--o{ inventory : holds
 ```
 
-## Як запустити
+## 10 labs
 
-1. Увімкніть [Docker Desktop](https://www.docker.com/products/docker-desktop/).
-2. Якщо репозиторій лежить на OneDrive або в шляху з кирилицею і том не монтується — скопіюйте папку в `C:\dev\SQLShopOptimization`.
-3. У PowerShell з кореня проєкту:
+Every folder has `slow.sql` and `fast.sql`. Run both. Compare `Execution Time` and scan type.
+
+| # | Screen | What is wrong | What fixes it |
+| --- | --- | --- | --- |
+| 01 | Customer order history | Seq Scan on `orders` | covering index, Index Only Scan, `LIMIT` |
+| 02 | Top customers by revenue | correlated subquery × N | aggregate `orders`, then join |
+| 03 | Admin order table, page 800+ | `OFFSET 40000` | keyset pagination |
+| 04 | Low-stock widget | subquery per row | `JOIN` + partial index |
+| 05 | Catalog search | `LIKE '%Wave%'` | `pg_trgm` + GIN |
+| 06 | Last order per customer | two `LIMIT 1` per row | `LEFT JOIN LATERAL` |
+| 07 | Paid orders without capture | `NOT IN` | anti-join + partial index |
+| 08 | Monthly sales by category | `created_at::date`, `count(DISTINCT)` | range filter + pre-agg |
+| 09 | Multi-word catalog search | `lower(name) LIKE` | `to_tsvector` + GIN |
+| 10 | Running daily revenue | correlated running `SUM` | `sum() OVER (ORDER BY day)` |
+
+How to read a plan: [docs/explain-cheatsheet.md](docs/explain-cheatsheet.md).
+
+## Quick start
+
+Docker Desktop, then from the repo root:
 
 ```powershell
 .\scripts\demo.ps1 -Step all
 ```
 
-Скрипт підніме Postgres на порту **5433**, наллє схему й дані, прожене 8 повільних запитів, створить індекси і прожене оптимізовані версії.
-
-Покроково:
+That loads the schema, seeds data, runs the slow plans, applies indexes, runs the fast plans.
 
 ```powershell
-.\scripts\demo.ps1 -Step init    # схема + дані
-.\scripts\demo.ps1 -Step slow    # EXPLAIN без робочих індексів
-.\scripts\demo.ps1 -Step index   # індекси після профайлінгу
-.\scripts\demo.ps1 -Step fast    # переписані запити
-.\scripts\demo.ps1 -Step reset   # прибрати індекси і повторити
-.\scripts\demo.ps1 -Step down    # зупинити контейнер і том
+.\scripts\demo.ps1 -Step init
+.\scripts\demo.ps1 -Step slow
+.\scripts\demo.ps1 -Step index
+.\scripts\demo.ps1 -Step fast
 ```
 
-Підключення вручну:
+Postgres: `localhost:5433` · db/user/password `shop`.
+
+If Docker cannot mount a OneDrive / Cyrillic path, copy the folder to `C:\dev\SQLShopOptimization`.
+
+## Repo map
 
 ```text
-host:     localhost
-port:     5433
-database: shop
-user:     shop
-password: shop
+sql/           schema, seed, indexes, materialized view
+labs/0N_*/     one admin screen, slow vs fast
+scripts/       demo.ps1, psql.ps1
+docs/          EXPLAIN notes
 ```
 
-```powershell
-.\scripts\psql.ps1
-```
+## Author
 
-## Лабораторні
+**Ruslan Babinets** · [github.com/Roman213r](https://github.com/Roman213r)
 
-Кожна папка в `labs/` — окремий екран продукту. Є `slow.sql`, `fast.sql` і коротке пояснення.
+---
 
-| # | Екран | Що ламає запит | Що лікує |
-| --- | --- | --- | --- |
-| 01 | Історія замовлень клієнта | Seq Scan по `orders` | композитний індекс `(customer_id, created_at)` |
-| 02 | Топ клієнтів за виручкою | корельований підзапит × N | `JOIN` + `GROUP BY` + partial index |
-| 03 | Таблиця замовлень, стор. 800+ | `OFFSET 40000` | keyset-пагінація |
-| 04 | Віджет «закінчується на складі» | підзапит категорії в `SELECT` | `JOIN` + partial index `quantity < 10` |
-| 05 | Пошук у каталозі | `LIKE '%Wave%'` | `pg_trgm` + GIN |
-| 06 | Останнє замовлення клієнта | два `LIMIT 1` на рядок | `DISTINCT ON` |
-| 07 | Замовлення без оплати | `NOT IN` | `NOT EXISTS` |
-| 08 | Звіт продажів за місяць | `created_at::date` | діапазон по «голій» колонці |
+<details>
+<summary>Українською</summary>
 
-Додатково `sql/05_materialized_view.sql` показує, як важкий дашборд виносять у `MATERIALIZED VIEW`.
-
-Шпаргалка по плану: [docs/explain-cheatsheet.md](docs/explain-cheatsheet.md).
-
-## На що дивитися в плані
-
-Після кожного запиту шукайте три рядки:
-
-- `Seq Scan` → `Index Scan` / `Index Only Scan`
-- `Execution Time`
-- `Buffers: shared read` (диск) vs `shared hit` (кеш)
-
-На ноутбуці різниця зазвичай від **десятків мс до секунд**. Саме так виглядає оптимізація на проді, коли таблиця росте.
-
-## Типові граблі, зібрані в цьому репо
-
-1. Індекс «є», але колонка обгорнута в функцію — планувальник його не бере.
-2. ORM згенерував `SELECT *` і N+1 / корельований підзапит.
-3. Пагінація через `OFFSET` «працює» на перших сторінках і помирає на глибоких.
-4. Пошук підрядка без trigram / full-text.
-5. `NOT IN` і `NULL` дають або порожній результат, або важкий план.
-6. Звіт рахують на льоту кожні 5 секунд замість матеріалізованого агрегу.
-
-## Структура
-
-```text
-sql/                 схема, seed, індекси, matview
-labs/0N_*/           повільний і швидкий SQL одного екрана
-scripts/demo.ps1     повний прогін
-docs/                як читати EXPLAIN
-```
+Навчальний проєкт під адмінку інтернет-магазину: замовлення, склад, пошук, фінансові звіти. Спочатку запити як з ORM, далі індекси й переписаний SQL. Стек — PostgreSQL 16 і Docker. Повний прогін: `.\scripts\demo.ps1 -Step all`.
+</details>

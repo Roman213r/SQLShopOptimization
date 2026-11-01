@@ -43,7 +43,9 @@ $labs = @(
     "05_product_search",
     "06_last_order",
     "07_unpaid_orders",
-    "08_sales_report"
+    "08_sales_report",
+    "09_full_text_search",
+    "10_running_revenue"
 )
 
 switch ($Step) {
