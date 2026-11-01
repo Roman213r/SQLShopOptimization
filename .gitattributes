@@ -1,0 +1,5 @@
+*.sql linguist-detectable=true
+*.sql linguist-language=SQL
+scripts/** linguist-vendored=true
+*.svg linguist-documentation=true
+*.md linguist-documentation=true

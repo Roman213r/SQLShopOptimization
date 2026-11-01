@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="420" viewBox="0 0 1440 420" role="img" aria-label="SQL Shop Optimization">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B1220"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="420" fill="url(#bg)"/>
+  <g fill="#1E293B" opacity="0.55">
+    <circle cx="80" cy="40" r="1.6"/><circle cx="160" cy="40" r="1.6"/><circle cx="240" cy="40" r="1.6"/><circle cx="320" cy="40" r="1.6"/>
+    <circle cx="80" cy="100" r="1.6"/><circle cx="160" cy="100" r="1.6"/><circle cx="240" cy="100" r="1.6"/>
+    <circle cx="1280" cy="60" r="1.6"/><circle cx="1360" cy="60" r="1.6"/>
+    <circle cx="1280" cy="140" r="1.6"/><circle cx="1360" cy="140" r="1.6"/>
+  </g>
+  <rect x="72" y="168" width="72" height="6" rx="3" fill="#2DD4BF"/>
+  <text x="72" y="230" fill="#F8FAFC" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="52" font-weight="700">SQL Shop Optimization</text>
+  <text x="72" y="278" fill="#94A3B8" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="22">PostgreSQL query tuning on a 120k-order shop schema</text>
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600">
+    <rect x="72" y="318" width="168" height="36" rx="18" fill="#132033" stroke="#334155"/>
+    <text x="156" y="341" text-anchor="middle" fill="#E2E8F0">EXPLAIN ANALYZE</text>
+    <rect x="252" y="318" width="168" height="36" rx="18" fill="#132033" stroke="#334155"/>
+    <text x="336" y="341" text-anchor="middle" fill="#E2E8F0">INDEX ONLY SCAN</text>
+    <rect x="432" y="318" width="108" height="36" rx="18" fill="#132033" stroke="#334155"/>
+    <text x="486" y="341" text-anchor="middle" fill="#E2E8F0">10 LABS</text>
+  </g>
+  <rect x="920" y="88" width="448" height="244" rx="16" fill="#0F172A" stroke="#334155"/>
+  <text x="948" y="128" fill="#64748B" font-family="Consolas, Menlo, monospace" font-size="13">query plan</text>
+  <text x="948" y="172" fill="#F87171" font-family="Consolas, Menlo, monospace" font-size="18">Seq Scan on orders</text>
+  <text x="948" y="210" fill="#64748B" font-family="Consolas, Menlo, monospace" font-size="18">“</text>
+  <text x="948" y="252" fill="#2DD4BF" font-family="Consolas, Menlo, monospace" font-size="18">Index Only Scan</text>
+  <text x="948" y="292" fill="#94A3B8" font-family="Consolas, Menlo, monospace" font-size="14">120 000 orders · 360 000 items</text>
+</svg>
